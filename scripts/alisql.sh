@@ -9,9 +9,6 @@ alisql=AliSQL-5.6.32-1.tar.gz
 alisql_dir=${alisql%\.*}
 alisql_dir=${alisql_dir%\.*}
 
-#echo "alisql_url=$alisql_url"
-#echo "alsql_dir=$alisql_dir"
-
 function alisql_installed {
 	[ -e $topdir/install/$alisql_dir/bin/mysqld ]
 }
@@ -25,13 +22,13 @@ function build_alisql {
 		#-DWITH_MEMORY_STORAGE_ENGINE=1 \
 	if [ ! -d $topdir/build/$alisql_dir ]; then
 		if [ ! -e $topdir/pkgs/$alisql_src ]; then
-			echo "download $alisql_src ..."
+			info "download $alisql_src ..."
 			wget $alisql_url -O $topdir/pkgs/$alisql_src
 		fi
 		tar xf $topdir/pkgs/$alisql_src -C $topdir/build
 	fi
 
-	echo "install ${alisql_src} dependency ..."
+	info "install ${alisql_src} dependency ..."
 	prepare_alisql
 
 	pushd $topdir/build/$alisql_src_dir/BUILD
@@ -61,13 +58,13 @@ function configure_alisql {
 	fi
 
 	if ! grep -q "alisql_home" $topdir/install/etc/profile; then
-		echo "export alisql_home=$topdir/install/$alisql_dir" >> $topdir/install/etc/profile
+		append "export alisql_home=$topdir/install/$alisql_dir"
 	fi
 }
 
 function install_alisql {
 	if alisql_installed; then
-		echo "$alisql_dir already installed"
+		info "$alisql_dir already installed"
 		return
 	fi
 

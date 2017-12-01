@@ -14,7 +14,13 @@ libpcap_url=http://www.tcpdump.org/release/libpcap-1.6.1.tar.gz
 libpcap=${libpcap_url##*/}
 
 function tcprstat_installed {
-	[ -e $topdir/install/$tcprstat_dir/tcprstat ]
+	[ -e $topdir/install/$tcprstat_dir/bin/tcprstat ]
+}
+
+function prepare_tcprstat {
+	yum install -y flex &&
+	yum install -y bison &&
+	yum install -y glibc-static
 }
 
 function patch_tcprstat {
@@ -38,6 +44,8 @@ function build_tcprstat {
 			tar xf $topdir/pkgs/$tcprstat_src -C $topdir/build
 		fi
 	fi
+	warn "prepare_tcprstat"
+
 	pushd $topdir/build/$tcprstat_src_dir
 	if [ $(uname -m) == "aarch64" ]; then
 		patch_tcprstat
@@ -53,22 +61,24 @@ function build_tcprstat {
 	chmod 755 bootstrap
 	./bootstrap
 	if [ $(uname -m) == "aarch64" ]; then
-		./configure --build=aarch64-unknown-linux-gnu --prefix=$topdir/install/$tcprstat
+		./configure --build=aarch64-unknown-linux-gnu \
+			--prefix=$topdir/install/$tcprstat_dir
 	else
-		./configure --prefix=$topdir/install/$tcprstat
+		./configure --prefix=$topdir/install/$tcprstat_dir
 	fi
-	make &&
+	make -j64&&
 	make install
 	popd
 }
 
 function configure_tcprstat {
-	return 0
+	append "export tcprstat_home=$topdir/install/$tcprstat_dir"
+	append 'export PATH=$tcprstat_home/bin:$PATH'
 }
 
 function install_tcprstat {
 	if tcprstat_installed; then
-		echo "$tcprstat_src already installed"
+		info "$tcprstat_dir already installed"
 		return 0
 	fi
 
